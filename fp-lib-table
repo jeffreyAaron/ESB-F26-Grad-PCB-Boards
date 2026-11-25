@@ -1,0 +1,4 @@
+(fp_lib_table
+	(version 7)
+	(lib (name "ESB_grad_project") (type "KiCad") (uri "${KIPRJMOD}/ESB_grad_project.pretty") (options "") (descr "Project footprints (NFC antenna)"))
+)
