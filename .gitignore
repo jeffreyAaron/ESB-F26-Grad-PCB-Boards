@@ -1,0 +1,8 @@
+# KiCad scratch files
+*.kicad_prl
+*-backups/
+fp-info-cache
+_autosave-*
+*.lck
+~*
+.DS_Store
