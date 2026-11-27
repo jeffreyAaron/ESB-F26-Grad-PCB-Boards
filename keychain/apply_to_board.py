@@ -29,6 +29,6 @@ def hole(ref, x, y, drill, pad, plated):
     p.SetLayerSet(pcbnew.PAD.PTHMask() if plated else pcbnew.PAD.UnplatedHoleMask())
     if plated: p.SetNumber("1")
     f.Add(p); b.Add(f); f.SetPosition(V(x, y))
-hole("KEY1", *G["key"], G["key_drill"], G["key_pad"], True)
+for i, k in enumerate(G["keys"]): hole(f"KEY{i+1}", *k, G["key_drill"], G["key_pad"], True)
 for i, (x, y) in enumerate(G["bites"]): hole(f"MB{i+1}", x, y, G["bite_d"], G["bite_d"], False)
-b.Save(P); print("outline", len(G["outline"]), "pts,", len(G["slots"]), "slot,", len(G["bites"]), "mouse bites, keyring at", G["key"])
+b.Save(P); print("outline", len(G["outline"]), "pts,", len(G["slots"]), "slot,", len(G["bites"]), "mouse bites,", len(G["keys"]), "keyring holes")
