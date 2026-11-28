@@ -1,9 +1,10 @@
 """Put the keychain into a KiCad board: replace Edge.Cuts with the outline from geometry.json and add the plated
 keyring hole + mouse-bite holes as board-only footprints.  Run twice (KiCad's Python gets confused after removals):
-   python3 apply_to_board.py BOARD clean    then    python3 apply_to_board.py BOARD add"""
+   python3 apply_to_board.py BOARD clean    then    python3 apply_to_board.py BOARD add [ROW_DIR]"""
 import pcbnew, json, sys, os
 P, STAGE = sys.argv[1], sys.argv[2]
-G = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "geometry.json")))
+ROW = sys.argv[3] if len(sys.argv) > 3 else "."                     # keychain row folder (keychain/row.py OUTDIR)
+G = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), ROW, "geometry.json")))
 b = pcbnew.LoadBoard(P); O = 30.0; mm = pcbnew.FromMM
 V = lambda x, y: pcbnew.VECTOR2I(mm(O + x), mm(O + y))
 if STAGE == "clean":

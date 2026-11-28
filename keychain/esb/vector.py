@@ -3,13 +3,13 @@
  - gold = the white areas inside it (the three faces; with FILL=0 also the insides of the E / S / B), straightened, pulled back so the
    purple lines between them come out LINE mm wide; the outer border is LINE mm too
  - purple lines = silhouette minus gold, so every corner and junction is closed by construction
-  python3 -I keychain/esb/vector.py HEIGHT_MM LINE_MM   -> keychain/esb/esb.json, preview_trace.png"""
+  python3 -I keychain/esb/vector.py HEIGHT_MM LINE_MM [NAME]   -> keychain/esb/NAME.json (default esb), preview_trace.png"""
 import os, sys, json, numpy as np, cv2
 from PIL import Image
 from shapely.geometry import Polygon, mapping
 from shapely.ops import unary_union
 D = os.path.dirname(os.path.abspath(__file__))
-H_MM, LINE = float(sys.argv[1]), float(sys.argv[2])
+H_MM, LINE = float(sys.argv[1]), float(sys.argv[2]); NAME = sys.argv[3] if len(sys.argv) > 3 else "esb"
 a = np.asarray(Image.open(f"{D}/source.png").convert("RGBA")).astype(int)
 ink = ((a[..., 3] > 128) & (a[..., :3].sum(-1) < 3 * 225)).astype(np.uint8)
 ink = np.pad(ink, 20)
@@ -55,7 +55,7 @@ else:
     gold = unary_union([r.buffer(-grow, join_style=2, mitre_limit=3) for r in regions])
 gold = gold.intersection(sil.buffer(-(LINE + 0.3), join_style=2))       # +0.3: the keychain copper is inset 0.3 mm from the edge
 lines = sil.difference(gold).buffer(0)
-json.dump(dict(sil=mapping(sil), lines=mapping(lines), bounds=sil.bounds), open(f"{D}/esb.json", "w"))
+json.dump(dict(sil=mapping(sil), lines=mapping(lines), bounds=sil.bounds), open(f"{D}/{NAME}.json", "w"))
 K = 25; b = sil.bounds; img = np.full((int((b[3] - b[1] + 2) * K), int((b[2] - b[0] + 2) * K), 3), 40, np.uint8)
 def fill(g, col, hole):
     for p in sorted([p for p in getattr(g, "geoms", [g]) if p.geom_type == "Polygon"], key=lambda q: -q.area):

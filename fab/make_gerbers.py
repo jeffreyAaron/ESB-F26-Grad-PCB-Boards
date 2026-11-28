@@ -8,7 +8,7 @@ The art lives outside KiCad (as 0.2 mm-per-dot bitmaps) so the board file stays 
 the dithered group photo on the back (same 0.2 mm dots, mirrored because it is read from the bottom):
   group_pcb/fade4_F_Cu.png / fade4_F_Mask_openings.png / fade4_F_Silkscreen.png -> B.Cu / B.Mask / B.Silkscreen
   portrait_back/fade4_*.png (grad portrait, same treatment)                         -> B.Cu / B.Mask / B.Silkscreen
-the break-off Campanile keychain (keychain/keychain_Cu.svg, keychain_Mask.svg -> F/B.Cu, F/B.Mask),
+the break-off keychain row for the card (keychain/<row>/keychain_Cu.svg, keychain_Mask.svg -> F/B.Cu, F/B.Mask),
 and the traced handwritten notes (vector polygons, already mirrored for the bottom side):
   notes_pcb/notes_B_Silkscreen.svg                      -> B.Silkscreen (data-level even = ink, odd = hole)
 Usage:  python3 fab/make_gerbers.py [person]     person = reagan (default), carolyn, doruk
@@ -33,6 +33,8 @@ for _p in ("carolyn", "doruk"):
 # Doruk: face portrait (people/doruk/back_portrait/portrait_fade.py, 61.2 x 76.0 mm) right of the group photo as seen
 # from the back (back-view x 219.0-280.2) -> board x 24.6-85.8
 PEOPLE["doruk"].update(back_portrait="people/doruk/back_portrait", back_portrait_at=(24.6, 148.4))
+# keychain row per card (keychain/row.py): cubes on Reagan and Carolyn, 11 cubes + the 3 dogs on Doruk
+for _p, _r in (("reagan", "row_cubes"), ("carolyn", "row_cubes"), ("doruk", "row_mixed")): PEOPLE[_p]["keychain"] = f"keychain/{_r}"
 CFG = {k: (os.path.join(PROJ, v) if isinstance(v, str) else v) for k, v in PEOPLE[PERSON].items()}
 PCB, OUT = CFG["pcb"], CFG["out"]
 ART = os.path.join(PROJ, "campanile_pcb", "board_305x229")   # campanile_pcb/campanile_art.py
@@ -139,9 +141,10 @@ def main():
         print(f"merged {merge(g[0], png, at, mirror, bool(clear and clear[0]))} rectangles from {os.path.basename(png)} into {os.path.basename(g[0])}")
     g = glob.glob(os.path.join(OUT, "*-B_Silkscreen.g*")); assert len(g) == 1, g
     print(f"merged {merge_notes(g[0], NOTES)} note outlines into {os.path.basename(g[0])}")
-    # break-off Campanile keychain (keychain/keychain.py): gold on both sides
-    KC = os.path.join(PROJ, "keychain")
-    for tag, f in (("F_Cu", "keychain_Cu.svg"), ("B_Cu", "keychain_Cu.svg"), ("F_Mask", "keychain_Mask.svg"), ("B_Mask", "keychain_Mask.svg")):
+    # break-off keychain row (keychain/row.py): gold + purple, same on both sides
+    KC = CFG["keychain"]
+    bm = "keychain_Mask_B.svg" if os.path.exists(os.path.join(KC, "keychain_Mask_B.svg")) else "keychain_Mask.svg"   # back art (letters read right)
+    for tag, f in (("F_Cu", "keychain_Cu.svg"), ("B_Cu", "keychain_Cu.svg"), ("F_Mask", "keychain_Mask.svg"), ("B_Mask", bm)):
         g = glob.glob(os.path.join(OUT, f"*-{tag}.g*")); assert len(g) == 1, g
         print(f"merged {merge_notes(g[0], os.path.join(KC, f), 'keychain')} keychain outlines into {os.path.basename(g[0])}")
     z = CFG["zip"]
