@@ -5,8 +5,8 @@ OUT = sys.argv[1]
 PITCH = 0.2
 import os
 CROP = tuple(int(v) for v in os.environ.get("CROP", "560,840,1380,1855").split(","))   # x0,y0,x1,y1 in source pixels
-W_DOTS, H_DOTS = (int(v) for v in os.environ.get("DOTS", "204,253").split(","))   # 0.2 mm dots
-FADE = float(os.environ.get("FADE", "5.0"))
+W_DOTS, H_DOTS = (int(v) for v in os.environ.get("DOTS", "306,380").split(","))   # 0.2 mm dots
+FADE = float(os.environ.get("FADE", "7.5"))
 DARK, MID, GOLD, SILK = (58, 26, 86), (96, 48, 138), (226, 186, 104), (238, 236, 228)
 im = cv2.imread(f"{OUT}/source.png"); x0, y0, x1, y1 = CROP; im = im[y0:y1, x0:x1]
 L = cv2.resize(cv2.cvtColor(im, cv2.COLOR_BGR2GRAY), (W_DOTS, H_DOTS), interpolation=cv2.INTER_AREA)

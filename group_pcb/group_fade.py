@@ -2,10 +2,10 @@
 import sys, numpy as np, cv2
 from PIL import Image
 OUT = sys.argv[1]
-W_MM, PITCH = 80.0, 0.2
-OX, OY = 61.6, 98.9          # back-view top-left (mm): centred on the 203.2 mm board
-FADE = 10.0                   # mm of fade on each edge
-COIL = (133.2, 48.0, 173.2, 88.0)    # NFC coil outer edge, back-view mm (board x 30-70, y 48-88, mirrored)
+W_MM, PITCH = 120.0, 0.2
+OX, OY = 92.4, 148.4         # back-view top-left (mm): centred on the 304.8 mm board
+FADE = 15.0                   # mm of fade on each edge
+COIL = (1e4, 1e4, 1e4 + 1, 1e4 + 1)    # NFC coil removed: no keep-out
 CROP = (0, 690, 1500, 1640)
 DARK, MID, GOLD, SILK = (58, 26, 86), (96, 48, 138), (226, 186, 104), (238, 236, 228)
 im = cv2.imread(f"{OUT}/source.jpg"); x0, y0, x1, y1 = CROP; im = im[y0:y1, x0:x1]

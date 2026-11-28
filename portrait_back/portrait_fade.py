@@ -4,8 +4,8 @@ from PIL import Image
 OUT = sys.argv[1]
 PITCH = 0.2
 CROP = (0, 0, 376, 634)          # drop the sliver of another person on the right edge
-W_DOTS, H_DOTS = 150, 253        # 30.0 x 50.6 mm, same height as the group photo
-FADE = 6.0
+W_DOTS, H_DOTS = 225, 380        # 45.0 x 76.0 mm, same height as the group photo
+FADE = 9.0
 DARK, MID, GOLD, SILK = (58, 26, 86), (96, 48, 138), (226, 186, 104), (238, 236, 228)
 im = cv2.imread(f"{OUT}/source.png"); x0, y0, x1, y1 = CROP; im = im[y0:y1, x0:x1]
 L = cv2.resize(cv2.cvtColor(im, cv2.COLOR_BGR2GRAY), (W_DOTS, H_DOTS), interpolation=cv2.INTER_AREA)

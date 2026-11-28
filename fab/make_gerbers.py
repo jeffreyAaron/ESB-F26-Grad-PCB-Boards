@@ -2,9 +2,9 @@
 """Export JLC gerbers + drills from the KiCad board and merge the dithered campanile art into them.
 
 The art lives outside KiCad (as 0.2 mm-per-dot bitmaps) so the board file stays light:
-  campanile_pcb/board_203x152/art_F_Cu.png             -> F.Cu         (black = copper)
-  campanile_pcb/board_203x152/art_F_Mask_openings.png  -> F.Mask       (black = opening -> ENIG gold)
-  campanile_pcb/board_203x152/art_F_Silkscreen.png     -> F.Silkscreen (black = white ink)
+  campanile_pcb/board_305x229/art_F_Cu.png             -> F.Cu         (black = copper)
+  campanile_pcb/board_305x229/art_F_Mask_openings.png  -> F.Mask       (black = opening -> ENIG gold)
+  campanile_pcb/board_305x229/art_F_Silkscreen.png     -> F.Silkscreen (black = white ink)
 the dithered group photo on the back (same 0.2 mm dots, mirrored because it is read from the bottom):
   group_pcb/fade4_F_Cu.png / fade4_F_Mask_openings.png / fade4_F_Silkscreen.png -> B.Cu / B.Mask / B.Silkscreen
   portrait_back/fade4_*.png (grad portrait, same treatment)                         -> B.Cu / B.Mask / B.Silkscreen
@@ -23,44 +23,44 @@ PROJ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PERSON = sys.argv[1] if len(sys.argv) > 1 else "reagan"
 PEOPLE = {
     "reagan": dict(pcb="ESB_grad_project.kicad_pcb", notes="notes_pcb/notes_B_Silkscreen.svg", front_portrait="portrait_pcb",
-                   back_portrait="portrait_back", back_portrait_at=(26.2, 98.9), out="fab/gerbers", zip="fab/ESB_grad_project_JLC.zip"),
+                   back_portrait="portrait_back", back_portrait_at=(39.3, 148.4), out="fab/gerbers", zip="fab/ESB_grad_project_JLC.zip"),
 }
 for _p in ("carolyn", "doruk"):
     _fp = f"people/{_p}/front_portrait"
     PEOPLE[_p] = dict(pcb=f"people/{_p}/ESB_grad_{_p}.kicad_pcb", notes=f"people/{_p}/notes_B_Silkscreen.svg",
                       front_portrait=_fp if os.path.exists(os.path.join(PROJ, _fp, "front_F_Cu_clear.png")) else None,
                       back_portrait=None, back_portrait_at=None, out=f"fab/gerbers_{_p}", zip=f"fab/ESB_grad_{_p}_JLC.zip")
-# Doruk: face portrait (people/doruk/back_portrait/portrait_fade.py, 40.8 x 50.6 mm) right of the group photo as seen
-# from the back (back-view x 146-186.8) -> board x 16.4-57.2
-PEOPLE["doruk"].update(back_portrait="people/doruk/back_portrait", back_portrait_at=(16.4, 98.9))
+# Doruk: face portrait (people/doruk/back_portrait/portrait_fade.py, 61.2 x 76.0 mm) right of the group photo as seen
+# from the back (back-view x 219.0-280.2) -> board x 24.6-85.8
+PEOPLE["doruk"].update(back_portrait="people/doruk/back_portrait", back_portrait_at=(24.6, 148.4))
 CFG = {k: (os.path.join(PROJ, v) if isinstance(v, str) else v) for k, v in PEOPLE[PERSON].items()}
 PCB, OUT = CFG["pcb"], CFG["out"]
-ART = os.path.join(PROJ, "campanile_pcb", "board_203x152")
+ART = os.path.join(PROJ, "campanile_pcb", "board_305x229")   # campanile_pcb/campanile_art.py
 CLI = "/Applications/KiCad/KiCad.app/Contents/MacOS/kicad-cli"
 # where the art bitmap sits, in KiCad page coordinates (mm): board top-left (30, 30) + art offset
-BOARD_X, BOARD_Y, BW = 30.0, 30.0, 203.2
+BOARD_X, BOARD_Y, BW = 30.0, 30.0, 304.8      # 12 x 9 in card
 PITCH = 0.2
 LAYERS = "F.Cu,B.Cu,F.Mask,B.Mask,F.Paste,B.Paste,F.Silkscreen,B.Silkscreen,Edge.Cuts"
 NOTES = CFG["notes"]
 GROUP = os.path.join(PROJ, "group_pcb")
 PORTRAIT = CFG["back_portrait"]
 # (layer tag, png, top-left in board mm or None = right-aligned at the top, mirror)
-# group photo: centred, board x 61.6-141.6, y 98.9-149.5; edges fade out, and it fades to nothing within 2 mm of the NFC coil (group_fade.py)
+# group photo: centred, board x 92.4-212.4, y 148.4-224.4; edges fade out (group_fade.py)
 FRONT_PORTRAIT = CFG["front_portrait"]
 MERGE = [("F_Cu", os.path.join(ART, "art_F_Cu.png"), None, False),
          ("F_Mask", os.path.join(ART, "art_F_Mask_openings.png"), None, False),
          ("F_Silkscreen", os.path.join(ART, "art_F_Silkscreen.png"), None, False),
-         ("B_Cu", os.path.join(GROUP, "fade4_F_Cu.png"), (61.6, 98.9), True),
-         ("B_Mask", os.path.join(GROUP, "fade4_F_Mask_openings.png"), (61.6, 98.9), True),
-         ("B_Silkscreen", os.path.join(GROUP, "fade4_F_Silkscreen.png"), (61.6, 98.9), True)]
+         ("B_Cu", os.path.join(GROUP, "fade4_F_Cu.png"), (92.4, 148.4), True),
+         ("B_Mask", os.path.join(GROUP, "fade4_F_Mask_openings.png"), (92.4, 148.4), True),
+         ("B_Silkscreen", os.path.join(GROUP, "fade4_F_Silkscreen.png"), (92.4, 148.4), True)]
 if FRONT_PORTRAIT:
-    # front portrait (portrait_pcb/portrait_front.py): board x 8-73, y 42-107, sits on the field copper;
+    # front portrait (portrait_pcb/portrait_front.py): board x 12-109.6, y 63-160.6, sits on the field copper;
     # its dark dots are cut out of the field with clear polarity
-    MERGE += [("F_Cu", os.path.join(FRONT_PORTRAIT, "front_F_Cu_clear.png"), (8.0, 42.0), False, True),
-              ("F_Mask", os.path.join(FRONT_PORTRAIT, "front_F_Mask_openings.png"), (8.0, 42.0), False),
-              ("F_Silkscreen", os.path.join(FRONT_PORTRAIT, "front_F_Silkscreen.png"), (8.0, 42.0), False)]
+    MERGE += [("F_Cu", os.path.join(FRONT_PORTRAIT, "front_F_Cu_clear.png"), (12.0, 63.0), False, True),
+              ("F_Mask", os.path.join(FRONT_PORTRAIT, "front_F_Mask_openings.png"), (12.0, 63.0), False),
+              ("F_Silkscreen", os.path.join(FRONT_PORTRAIT, "front_F_Silkscreen.png"), (12.0, 63.0), False)]
 if PORTRAIT:
-    # back portrait, mirrored; Reagan's sits at board x 26.2-56.2, y 98.9-149.5 (right of the group photo seen from the back)
+    # back portrait, mirrored; Reagan's sits at board x 39.3-84.3, y 148.4-224.4 (right of the group photo seen from the back)
     AT = CFG["back_portrait_at"]
     MERGE += [("B_Cu", os.path.join(PORTRAIT, "fade4_F_Cu.png"), AT, True),
               ("B_Mask", os.path.join(PORTRAIT, "fade4_F_Mask_openings.png"), AT, True),

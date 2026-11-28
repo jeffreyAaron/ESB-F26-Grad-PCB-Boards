@@ -11,7 +11,7 @@ from shapely import affinity
 OUT = sys.argv[1]
 D = json.load(open(os.path.join(OUT, "dog", "dog.json")))
 SIL, LINES = shape(D["sil"]), shape(D["lines"])
-BW, BH, BR = 203.2, 152.4, 5.0
+BW, BH, BR = 304.8, 228.6, 5.0                    # 12 x 9 in card
 GAP, BITE_D, BITE_P = 2.0, 0.5, 0.8
 KEY_DRILL, KEY_PAD, LOOP_R = 3.5, 6.0, 4.2
 KEY = (0.0, -2.6)                                  # loop centre, local coords (head top at y = 0)

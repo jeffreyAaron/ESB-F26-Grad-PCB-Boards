@@ -5,8 +5,8 @@ import sys, numpy as np, cv2
 from PIL import Image
 OUT = sys.argv[1]; DST = sys.argv[2] if len(sys.argv) > 2 else OUT
 PITCH = 0.2
-BOX = (8.0, 42.0, 73.0, 107.0)     # board mm (x0, y0, x1, y1) - rounded box, outer edge
-R, RING = 4.0, 0.0                 # no border: the portrait sits straight on the field purple
+BOX = (12.0, 63.0, 109.5, 160.5)    # board mm (x0, y0, x1, y1) - rounded box, outer edge
+R, RING = 6.0, 0.0                 # no border: the portrait sits straight on the field purple
 DARK, MID, GOLD, SILK = (58, 26, 86), (96, 48, 138), (226, 186, 104), (238, 236, 228)
 W = int(round((BOX[2]-BOX[0])/PITCH)); H = int(round((BOX[3]-BOX[1])/PITCH))
 inner = int(round(RING/PITCH)); n = W - 2*inner                      # portrait square inside the ring

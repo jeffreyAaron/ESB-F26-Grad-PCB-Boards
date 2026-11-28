@@ -14,11 +14,9 @@ from tracelib import write_svg
 PROJ = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 person, name, scan = sys.argv[1:4]
 X0, Y0, X1, Y1 = map(int, sys.argv[4:8]); PITCH_PX = float(sys.argv[8])
-D = {"reagan": ("notes_pcb", (145.0, 96.4, 179.5, 152.4)),
-     "carolyn": ("people/carolyn", None),
-     "doruk": ("people/doruk", (144.0, 96.4, 189.0, 152.4))}[person]
-base = os.path.join(PROJ, D[0]); SVG = f"{base}/notes_B_Silkscreen.svg"; LAY = f"{base}/scripts/layout.json"
-BW, BH, RES, MINW = 203.2, 152.4, 0.02, 0.16
+import board_cfg as C
+base = os.path.join(PROJ, C.DIRS[person]); SVG = f"{base}/notes_B_Silkscreen.svg"; LAY = f"{base}/scripts/layout.json"
+BW, BH, RES, MINW = C.BW, C.BH, 0.02, 0.16
 W, H = int(round(BW / RES)), int(round(BH / RES))
 
 # ---- current notes, back view, at RES ----
@@ -42,10 +40,9 @@ ink[np.isin(lab, [i for i in range(1, nl) if st[i, 4] < 6])] = 0          # scan
 ys, xs = np.nonzero(ink); ink = ink[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
 blocks[name] = ink; unit[name] = (ink.shape[1] / PITCH_PX, ink.shape[0] / PITCH_PX)
 
-# ---- pack (same rules as pack.py: corners + group photo + back portrait reserved, 2.5 mm margin, 3 mm gaps) ----
-M, GAP = 2.5, 3.0
-OBS = [(0, 0, 10.5, 10.5), (BW - 10.5, 0, BW, 10.5), (0, BH - 10.5, 10.5, BH), (BW - 10.5, BH - 10.5, BW, BH),
-       (59.6, 96.4, 143.6, BH)] + ([D[1]] if D[1] else [])
+# ---- pack: card size and keep-out areas from board_cfg.py ----
+M, GAP = C.M, C.GAP
+OBS = C.obstacles(person)
 def cut(free, o):
     ox0, oy0, ox1, oy1 = o; out = []
     for (x0, y0, x1, y1) in free:
@@ -73,7 +70,7 @@ orders = [sorted(names, key=lambda n: -unit[n][0] * unit[n][1]), sorted(names, k
 for _ in range(4000): o = names[:]; random.shuffle(o); orders.append(o)
 bestP, best = 0, None
 for o in orders:
-    lo, hi = max(bestP, 1.2), 4.0
+    lo, hi = max(bestP, 1.2), 8.0
     if not pack(lo + 1e-3, o): continue
     for _ in range(18):
         m = (lo + hi) / 2
