@@ -9,29 +9,33 @@ from shapely.geometry import shape, Point, box, LineString, Polygon
 from shapely.ops import unary_union
 from shapely import affinity
 OUT = sys.argv[1]
-D = json.load(open(os.path.join(OUT, "dog", "dog.json")))
+SHAPE = os.environ.get("SHAPE", "dog/dog.json")      # traced shape: dog/dog.json (dog/trace.py) or sus/sus.json (sus/trace_clean.py)
+D = json.load(open(os.path.join(OUT, SHAPE)))
 SIL, LINES = shape(D["sil"]), shape(D["lines"])
 BW, BH, BR = 304.8, 228.6, 5.0                    # 12 x 9 in card
 GAP, BITE_D, BITE_P = 2.0, 0.5, 0.8
 KEY_DRILL, KEY_PAD, LOOP_R = 3.5, 4.2, 4.2      # pad kept clear of the head outline (its mask opening would cover it)
-KEY = (0.0, -2.6)                                  # loop centre, local coords (head top at y = 0)
+_ys = SIL.bounds[1]; _top = [c for c in SIL.exterior.coords if c[1] < _ys + 0.4]
+KEY = (float(np.mean([c[0] for c in _top])), _ys - 2.3)   # loop centre: above the topmost point of the shape
 loop = Point(*KEY).buffer(LOOP_R, 64)
 body = unary_union([SIL, loop])
-top = KEY[1] - LOOP_R; bot = SIL.bounds[3]; hw = max(-SIL.bounds[0], SIL.bounds[2])
-# ear-to-ear tie: the level where the outer edge piece is thickest while the dog is near its widest
+top = KEY[1] - LOOP_R; bot = SIL.bounds[3]; XL, XR = SIL.bounds[0], SIL.bounds[2]; hw = (XR - XL) / 2
+# side-to-side tie: the level where both outer edge pieces are thick while the shape is near its widest on both sides
 def edge_piece(y):
     seg = SIL.intersection(LineString([(-50, y), (50, y)]))
     parts = sorted([g for g in getattr(seg, "geoms", [seg]) if g.length > 0], key=lambda g: g.bounds[0])
-    return (parts[0].bounds[0], parts[-1].bounds[2], parts[-1].length) if parts else None
+    return (parts[0].bounds[0], parts[-1].bounds[2], min(parts[0].length, parts[-1].length)) if parts else None
 cands = []
-for y in np.arange(4, 14, 0.1):
-    e = edge_piece(y)
-    if e and e[1] > hw - 0.8 and e[2] >= 1.6: cands.append((e[2], y, e))
+for tol in (0.8, 1.5, 2.5):
+    for y in np.arange(SIL.bounds[1] + 3, bot - 3, 0.1):
+        e = edge_piece(y)
+        if e and e[0] < XL + tol and e[1] > XR - tol and e[2] >= 1.6: cands.append((e[2], y, e))
+    if cands: break
 TIE_LEN, TIE_Y, (xl_local, xr_local, _) = max(cands)
 TIE_H = 2.4
 PITCH = 2*hw + GAP
 N = int((BW - 2*9.0 - 2*hw) // PITCH) + 1
-x_first = BW/2 - (N-1)*PITCH/2
+x_first = BW/2 - (N-1)*PITCH/2 - (XL + XR)/2     # row centred on the card
 Y_TOP = BH + GAP                                   # loop top sits GAP below the card edge; dog hangs upright
 DY = Y_TOP - top
 def place(g, cx): return affinity.translate(g, cx, DY)
@@ -41,9 +45,10 @@ for i in range(N):
     cx = x_first + i*PITCH
     dogs.append(place(body, cx)); lines.append(place(LINES, cx)); keys.append(place_pt(KEY, cx))
     lt = place(loop, cx).bounds[1]                 # loop top in board coords
-    tabs.append(box(cx-2.0, BH-0.6, cx+2.0, lt+0.6))
+    kx = cx + KEY[0]
+    tabs.append(box(kx-2.0, BH-0.6, kx+2.0, lt+0.6))
     for k in range(5):
-        x = cx + (k-2)*BITE_P; bites += [(x, BH+0.1), (x, lt-0.1)]
+        x = kx + (k-2)*BITE_P; bites += [(x, BH+0.1), (x, lt-0.1)]
     if i < N-1:
         y_b = DY + TIE_Y                           # tie level in board coords
         xr = cx + xr_local; xl = cx + PITCH + xl_local   # right ear edge of this dog, left ear edge of the next

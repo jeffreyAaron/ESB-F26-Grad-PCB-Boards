@@ -9,7 +9,8 @@ from skimage.morphology import skeletonize
 from scipy.interpolate import splprep, splev
 from shapely.geometry import Polygon, LineString, mapping
 from shapely.ops import unary_union
-D = os.path.dirname(os.path.abspath(__file__))
+D = os.environ.get("TRACE_DIR", os.path.dirname(os.path.abspath(__file__)))   # folder with sketch.png
+NAME = os.environ.get("NAME", "dog")                                                  # output: NAME.json / NAME.svg
 H_MM, STROKE = float(sys.argv[1]), float(sys.argv[2])
 SMOOTH = float(sys.argv[3]) if len(sys.argv) > 3 else 0.12     # mm of jitter to fit out (small = keeps lumps)
 SPUR = float(sys.argv[4]) if len(sys.argv) > 4 else 1.0
@@ -97,11 +98,11 @@ def path_d(gm):
             out.append("M" + " L".join(f"{x:.3f},{y:.3f}" for x, y in c) + "Z")
     return " ".join(out)
 bx = sil.bounds; pad = 1
-with open(f"{D}/dog.svg", "w") as f:
+with open(f"{D}/{NAME}.svg", "w") as f:
     f.write(f'<svg xmlns="http://www.w3.org/2000/svg" width="{bx[2]-bx[0]+2*pad:.2f}mm" height="{bx[3]-bx[1]+2*pad:.2f}mm" '
             f'viewBox="{bx[0]-pad:.3f} {bx[1]-pad:.3f} {bx[2]-bx[0]+2*pad:.3f} {bx[3]-bx[1]+2*pad:.3f}">\n')
     f.write(f'<path d="{path_d(sil)}" fill="#E2BA68"/>\n<path d="{path_d(lines)}" fill="#60308A" fill-rule="evenodd"/>\n</svg>\n')
-json.dump(dict(sil=mapping(sil), lines=mapping(lines), bounds=sil.bounds), open(f"{D}/dog.json", "w"))
+json.dump(dict(sil=mapping(sil), lines=mapping(lines), bounds=sil.bounds), open(f"{D}/{NAME}.json", "w"))
 K = 30; b = sil.bounds; img = np.full((int((b[3]-b[1])*K)+20, int((b[2]-b[0])*K)+20, 3), 40, np.uint8)
 def fill(gm, col, hole):
     for p in sorted([gm] if gm.geom_type == "Polygon" else [q for q in gm.geoms if q.geom_type == "Polygon"], key=lambda q: -q.area):
