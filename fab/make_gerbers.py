@@ -33,7 +33,7 @@ for _p in ("carolyn", "doruk"):
 # Doruk: face portrait (people/doruk/back_portrait/portrait_fade.py, 61.2 x 76.0 mm) right of the group photo as seen
 # from the back (back-view x 219.0-280.2) -> board x 24.6-85.8
 PEOPLE["doruk"].update(back_portrait="people/doruk/back_portrait", back_portrait_at=(24.6, 148.4))
-# keychain row per card (keychain/row.py): cubes on Reagan and Carolyn, 11 cubes + the 3 dogs on Doruk
+# keychain row per card (keychain/row.py): 14 cubes on Reagan and Carolyn; Doruk: 10 cubes + dog, monkey, crewmate
 for _p, _r in (("reagan", "row_cubes"), ("carolyn", "row_cubes"), ("doruk", "row_mixed")): PEOPLE[_p]["keychain"] = f"keychain/{_r}"
 CFG = {k: (os.path.join(PROJ, v) if isinstance(v, str) else v) for k, v in PEOPLE[PERSON].items()}
 PCB, OUT = CFG["pcb"], CFG["out"]
