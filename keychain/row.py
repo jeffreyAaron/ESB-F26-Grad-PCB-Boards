@@ -83,7 +83,7 @@ for c in ((BR, BR), (BW - BR, BR), (BR, BH - BR), (BW - BR, BH - BR)): board = b
 outline = unary_union([board] + [p["body"] for p in P] + tabs).simplify(0.005)
 assert outline.geom_type == "Polygon", outline.geom_type
 keys = [p["key"] for p in P]
-cu = unary_union([p["body"].buffer(-0.3) for p in P])
+cu = unary_union([p["body"].buffer(-0.3, join_style=2) for p in P])   # mitre: sharp corners stay sharp
 cu = cu.difference(unary_union([Point(xx, yy).buffer(BITE_D / 2 + 0.45, 24) for xx, yy in bites]))
 det = unary_union([p["lines"] for p in P]).intersection(cu)
 pads = unary_union([Point(*k).buffer(KEY_PAD / 2 + 0.05, 48) for k in keys])
