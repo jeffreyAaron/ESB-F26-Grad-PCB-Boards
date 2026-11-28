@@ -57,7 +57,7 @@ assert outline.geom_type == "Polygon", outline.geom_type
 cu = unary_union([d.buffer(-0.3) for d in dogs])
 cu = cu.difference(unary_union([Point(x, y).buffer(BITE_D/2 + 0.45, 24) for x, y in bites]))
 det = unary_union(lines).intersection(cu)
-mask_open = cu.difference(det).union(unary_union([Point(*k).buffer(KEY_PAD/2 + 0.05, 48) for k in keys]))
+mask_open = cu.union(unary_union([Point(*k).buffer(KEY_PAD/2 + 0.05, 48) for k in keys])).difference(det)   # head outline stays purple under the ring pad
 def polys(g): return [g] if g.geom_type == "Polygon" else [p for p in g.geoms if p.geom_type == "Polygon"]
 def write_svg(g, path, note):
     items = []; P = polys(g)
