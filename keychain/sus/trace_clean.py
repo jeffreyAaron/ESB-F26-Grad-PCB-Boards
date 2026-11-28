@@ -4,16 +4,20 @@ as drawn (smoothed edges, thickened to at least STROKE mm), the silhouette is ev
 import cv2, numpy as np, json, sys, os
 from shapely.geometry import Polygon, mapping
 from shapely.ops import unary_union
-D = os.path.dirname(os.path.abspath(__file__)); NAME = "sus"
+D = os.environ.get("TRACE_DIR", os.path.dirname(os.path.abspath(__file__))); NAME = os.environ.get("NAME", "sus")
 H_MM, STROKE = float(sys.argv[1]), float(sys.argv[2])
 g = cv2.imread(f"{D}/sketch.png", 0); ink = (g < 128).astype(np.uint8)
 ys, xs = np.nonzero(ink); ink = ink[ys.min() - 40:ys.max() + 41, xs.min() - 40:xs.max() + 41]
 RES = H_MM / (ys.max() - ys.min()); H, W = ink.shape
 # thicken thin lines to STROKE and smooth the jaggies
 from skimage.morphology import skeletonize
-sk = skeletonize(ink > 0).astype(np.uint8)
+SMOOTH = float(os.environ.get("SMOOTH_MM", "0.1"))                 # edge smoothing (mm)
+ink = (cv2.GaussianBlur(ink.astype(np.float32), (0, 0), max(1.0, SMOOTH / RES)) > 0.5).astype(np.uint8)
+sk = skeletonize(ink > 0)
+dt = cv2.distanceTransform(ink, cv2.DIST_L2, 5)
+thin = (sk & (2 * dt < STROKE / RES)).astype(np.uint8)            # only strokes thinner than STROKE get thickened
 k = int(round(STROKE / RES / 2))
-lines = np.maximum(ink, cv2.dilate(sk, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * k + 1, 2 * k + 1))))
+lines = np.maximum(ink, cv2.dilate(thin, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * k + 1, 2 * k + 1))))
 lines = (cv2.GaussianBlur(lines.astype(np.float32), (0, 0), 2.0) > 0.5).astype(np.uint8)
 # silhouette: flood the outside
 outer = cv2.morphologyEx(lines, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9)))
