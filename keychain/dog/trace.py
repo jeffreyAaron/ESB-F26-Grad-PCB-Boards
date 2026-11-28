@@ -18,18 +18,6 @@ ys, xs = np.nonzero(ink); ink = ink[ys.min()-20:ys.max()+21, xs.min()-20:xs.max(
 RES = H_MM / (ys.max() - ys.min())
 H, W = ink.shape
 to_mm = lambda p: ((p[0] - W/2) * RES, (p[1] - 20) * RES)       # x centred, head top at y = 0
-# ---- optional ankle strengthening: stretch the drawing sideways around the ankles (outer side of each leg only),
-# so the outline, belly line and feet all move together and stay joined.  ANKLE = mm added to each ankle's outer side.
-ANKLE = float(os.environ.get("ANKLE", "1.0"))
-if ANKLE > 0:
-    Y0, Y1, Y2, Y3 = 25.2, 26.4, 27.8, 30.0              # stretch starts below the belly line, full at the ankle, gone by mid-foot
-    ss = lambda v: np.clip(v, 0, 1) ** 2 * (3 - 2 * np.clip(v, 0, 1))
-    LEG_X, RAMP = 2.6, 1.6                               # leg centre |x| and how far out the stretch builds up (mm)
-    yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
-    xm, ym = (xx - W/2) * RES, (yy - 20) * RES
-    t = np.clip((np.abs(xm) - LEG_X) / RAMP, 0, 1); t = t * t * (3 - 2 * t)
-    dx = ANKLE * ss((ym - Y0) / (Y1 - Y0)) * (1 - ss((ym - Y2) / (Y3 - Y2))) * t * np.sign(xm)
-    ink = (cv2.remap(ink * 255, xx - dx / RES, yy, cv2.INTER_LINEAR) > 127).astype(np.uint8)
 def smooth_closed(pts, s_mm):
     pts = np.asarray(pts, float); pts = pts[np.r_[True, np.any(np.diff(pts, axis=0) != 0, axis=1)]]
     if len(pts) < 8: return pts
